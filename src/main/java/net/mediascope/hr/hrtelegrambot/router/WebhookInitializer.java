@@ -29,7 +29,7 @@ public class WebhookInitializer implements ApplicationListener<ApplicationReadyE
 
     private RetryOperations retry;
 
-    public WebhookInitializer(TelegramBot bot, @Value("server.host") URI root) {
+    public WebhookInitializer(TelegramBot bot, @Value("${server.host}") URI root) {
         this.bot = bot;
         this.root = root;
         this.retry = new RetryTemplate();
