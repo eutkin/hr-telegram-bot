@@ -2,7 +2,6 @@ package net.mediascope.hr.hrtelegrambot;
 
 import com.pengrad.telegrambot.TelegramBot;
 import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -31,7 +30,7 @@ public class HrTelegramBotApplication {
     @Bean
     @ConditionalOnMissingBean
     public OkHttpClient httpClient() {
-        return new OkHttpClient.Builder().addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)).build();
+        return new OkHttpClient();
     }
 
     @Bean
