@@ -29,7 +29,7 @@ public class WebhookInitializer implements ApplicationListener<ApplicationReadyE
 
     private RetryOperations retry;
 
-    public WebhookInitializer(TelegramBot bot, @Value("server.host")URI root) {
+    public WebhookInitializer(TelegramBot bot, @Value("server.host") URI root) {
         this.bot = bot;
         this.root = root;
         this.retry = new RetryTemplate();
@@ -40,7 +40,7 @@ public class WebhookInitializer implements ApplicationListener<ApplicationReadyE
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
         String uri = UriComponentsBuilder.fromUri(root).pathSegment("api").pathSegment("rest").pathSegment("update").toUriString();
-        log.debug("Webhook uri: {}", uri);
+        log.info("Webhook uri: {}", uri);
         String response = retry.execute(context -> {
             BaseResponse baseResponse = bot.execute(new SetWebhook().url(uri));
             if (!baseResponse.isOk()) {
