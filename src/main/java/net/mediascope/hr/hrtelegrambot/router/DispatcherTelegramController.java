@@ -1,6 +1,5 @@
 package net.mediascope.hr.hrtelegrambot.router;
 
-import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.Update;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,13 +21,14 @@ public class DispatcherTelegramController {
 
      */
     @PostMapping("/api/rest/update")
-    public ResponseEntity update(@RequestBody String update) {
-        log.info(update);
+    public ResponseEntity update(@RequestBody Update update) {
+        log.info(update.toString());
         return ok().build();
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity handleException(Exception ex) {
+        log.error(ex.getMessage(), ex);
         return badRequest().body(ex.getMessage());
     }
 }
