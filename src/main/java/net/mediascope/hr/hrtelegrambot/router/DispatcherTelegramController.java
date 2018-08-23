@@ -2,6 +2,7 @@ package net.mediascope.hr.hrtelegrambot.router;
 
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.Update;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,10 +15,12 @@ import static org.springframework.http.ResponseEntity.ok;
  * @author Евгений Уткин (evgeny.utkin@mediascope.net)
  */
 @Component
+@Slf4j
 public class DispatcherTelegramController {
 
     @PostMapping("/api/rest/update")
     public ResponseEntity update(Update update) {
+        log.info(update.toString());
         CallbackQuery callbackQuery = update.callbackQuery();
         return ok().build();
     }
