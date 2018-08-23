@@ -22,9 +22,8 @@ public class DispatcherTelegramController {
 
      */
     @PostMapping("/api/rest/update")
-    public ResponseEntity update(@RequestBody Update update) {
-        log.info(update.toString());
-        CallbackQuery callbackQuery = update.callbackQuery();
+    public ResponseEntity update(@RequestBody String update) {
+        log.info(update);
         return ok().build();
     }
 
