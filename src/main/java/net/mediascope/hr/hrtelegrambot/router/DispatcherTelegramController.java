@@ -1,10 +1,12 @@
 package net.mediascope.hr.hrtelegrambot.router;
 
+import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.MessageEntity;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.SendResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -79,8 +82,19 @@ public class DispatcherTelegramController extends DispatcherServlet implements A
                     ModelAndView modelAndView = botCommandHandlers.get(command).invoke(update);
                     TelegramFakeHttpResponse response = new TelegramFakeHttpResponse();
                     render(modelAndView, request, response);
+                    String text = new String(response.getBody());
+                    log.info("Send message: {}", text);
+                    bot.execute(new SendMessage(update.message().chat().id(), text).parseMode(HTML), new Callback<SendMessage, SendResponse>() {
+                        @Override
+                        public void onResponse(SendMessage request, SendResponse response) {
+                            log.info(response.toString());
+                        }
 
-                    bot.execute(new SendMessage(update.message().chat().id(), new String(response.getBody())).parseMode(HTML));
+                        @Override
+                        public void onFailure(SendMessage request, IOException e) {
+                            log.error(request.toString());
+                        }
+                    });
                 }
             }
         }
