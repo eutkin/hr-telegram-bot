@@ -4,6 +4,11 @@
       "name": "telegram.token",
       "type": "java.lang.String",
       "description": "Token of telegram bot."
+    },
+    {
+      "name": "server.host",
+      "type": "java.net.URI",
+      "description": "Description for server.host."
     }
   ]
 }

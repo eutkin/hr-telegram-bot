@@ -5,6 +5,7 @@ import com.pengrad.telegrambot.request.SetWebhook;
 import com.pengrad.telegrambot.response.BaseResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.retry.RetryOperations;
@@ -20,6 +21,7 @@ import java.net.URI;
  * @author Евгений Уткин (evgeny.utkin@mediascope.net)
  */
 @Component
+@ConditionalOnProperty(prefix = "telegram.webhook", name = "initialize", havingValue = "true", matchIfMissing = true)
 @Slf4j
 public class WebhookInitializer implements ApplicationListener<ApplicationReadyEvent> {
 

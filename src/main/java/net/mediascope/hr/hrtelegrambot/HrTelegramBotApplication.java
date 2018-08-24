@@ -8,12 +8,16 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.GsonHttpMessageConverter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.util.List;
 
 @SpringBootApplication
-public class HrTelegramBotApplication {
+public class HrTelegramBotApplication implements WebMvcConfigurer {
 
     public static void main(String[] args) {
         SpringApplication.run(HrTelegramBotApplication.class, args);
@@ -36,5 +40,10 @@ public class HrTelegramBotApplication {
     @Bean
     public TelegramBot telegramBot(@Value("${telegram.token}") String token, OkHttpClient httpClient) {
         return new TelegramBot.Builder(token).okHttpClient(httpClient).build();
+    }
+
+    @Override
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        converters.add(new GsonHttpMessageConverter());
     }
 }
