@@ -1,26 +1,33 @@
 package net.mediascope.hr.hrtelegrambot.router;
 
+import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.MessageEntity;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.SendMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.pengrad.telegrambot.model.MessageEntity.Type.bot_command;
+import static com.pengrad.telegrambot.model.request.ParseMode.HTML;
 import static org.springframework.http.ResponseEntity.badRequest;
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -29,14 +36,17 @@ import static org.springframework.http.ResponseEntity.ok;
  */
 @RestController
 @Slf4j
-public class DispatcherTelegramController implements BeanFactoryAware {
+public class DispatcherTelegramController extends DispatcherServlet implements BeanFactoryAware {
 
     private ListableBeanFactory beanFactory;
 
     private Map<String, MethodHolder> botCommandHandlers = new ConcurrentHashMap<>();
 
+    @Autowired
+    private TelegramBot bot;
+
     @PostConstruct
-    private void init() {
+    private void initHandlers() {
         Map<String, Object> beans = beanFactory.getBeansWithAnnotation(TelegramController.class);
         for (Object controller : beans.values()) {
             Class<?> controllerClass = controller.getClass();
@@ -56,7 +66,7 @@ public class DispatcherTelegramController implements BeanFactoryAware {
 
      */
     @PostMapping("/api/rest/update")
-    public ResponseEntity update(@RequestBody Update update) {
+    public ResponseEntity update(@RequestBody Update update, HttpServletRequest request) throws Exception {
         log.info(update.toString());
         Message message = update.message();
         if (message != null) {
@@ -64,7 +74,11 @@ public class DispatcherTelegramController implements BeanFactoryAware {
                 if (messageEntity.type() == bot_command) {
                     String command = message.text().substring(messageEntity.offset(), messageEntity.length());
                     log.info("Receive command: {}", command);
-                    botCommandHandlers.get(command).invoke();
+                    ModelAndView modelAndView = botCommandHandlers.get(command).invoke();
+                    TelegramFakeHttpResponse response = new TelegramFakeHttpResponse();
+                    render(modelAndView, request, response);
+
+                    bot.execute(new SendMessage(update.message().chat().id(), new String(response.getBody())).parseMode(HTML));
                 }
             }
         }
@@ -91,9 +105,9 @@ public class DispatcherTelegramController implements BeanFactoryAware {
             this.method = method;
         }
 
-        private Object invoke(Object... args) {
+        private ModelAndView invoke(Object... args) {
             try {
-                return method.invoke(object, args);
+                return (ModelAndView) method.invoke(object, args);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e.getMessage(), e);
             }

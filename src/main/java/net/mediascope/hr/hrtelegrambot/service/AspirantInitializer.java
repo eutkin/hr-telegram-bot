@@ -4,11 +4,13 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.User;
 import net.mediascope.hr.hrtelegrambot.model.Aspirant;
 import net.mediascope.hr.hrtelegrambot.repository.AspirantRepository;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Евгений Уткин (evgeny.utkin@mediascope.net)
  */
-public class AspirantInitializer {
+@Service
+public class AspirantInitializer implements EntityInitializer<Aspirant> {
 
     private final AspirantRepository aspirantRepository;
 
@@ -16,7 +18,8 @@ public class AspirantInitializer {
         this.aspirantRepository = aspirantRepository;
     }
 
-    public void init(Update update) {
+    @Override
+    public Aspirant init(Update update) {
         User user = update.message().from();
         Long chatId = update.message().chat().id();
         Aspirant aspirant = new Aspirant()
@@ -24,6 +27,6 @@ public class AspirantInitializer {
                 .setFirstName(user.firstName())
                 .setLastName(user.lastName())
                 ;
-        aspirantRepository.save(aspirant);
+        return aspirantRepository.save(aspirant);
     }
 }
