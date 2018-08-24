@@ -92,7 +92,7 @@ public class DispatcherTelegramController extends DispatcherServlet implements A
 
                         @Override
                         public void onFailure(SendMessage request, IOException e) {
-                            log.error(request.toString());
+                            log.error(e.getMessage(), e);
                         }
                     });
                 }
