@@ -1,12 +1,12 @@
 package net.mediascope.hr.hrtelegrambot.router;
 
+import lombok.experimental.Delegate;
+
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.Collection;
 import java.util.Locale;
 
@@ -15,9 +15,16 @@ import java.util.Locale;
  */
 class TelegramFakeHttpResponse implements HttpServletResponse {
 
-    private final ByteArrayServletOutputStream outputStream = new ByteArrayServletOutputStream();
+    private final ByteArrayServletOutputStream outputStream;
 
-    private final PrintWriter printWriter = new PrintWriter(outputStream, true);
+    private final ByteArrayOutputStream outputStream1 = new ByteArrayOutputStream();
+
+    private final PrintWriter printWriter;
+
+    TelegramFakeHttpResponse() {
+        this.outputStream = new ByteArrayServletOutputStream();
+        this.printWriter = new PrintWriter(outputStream1, true);
+    }
 
     @Override
     public ServletOutputStream getOutputStream() {
@@ -30,11 +37,13 @@ class TelegramFakeHttpResponse implements HttpServletResponse {
     }
 
     byte[] getBody() {
-        return outputStream.getBytes();
+        printWriter.flush();
+        return outputStream1.toByteArray();
     }
 
     private static class ByteArrayServletOutputStream extends ServletOutputStream {
 
+        @Delegate
         private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         @Override
@@ -45,11 +54,6 @@ class TelegramFakeHttpResponse implements HttpServletResponse {
         @Override
         public void setWriteListener(WriteListener listener) {
 
-        }
-
-        @Override
-        public void write(int b) {
-            outputStream.write(b);
         }
 
         private byte[] getBytes() {

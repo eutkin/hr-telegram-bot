@@ -8,7 +8,6 @@ import net.mediascope.hr.hrtelegrambot.router.TelegramController;
 import net.mediascope.hr.hrtelegrambot.service.EntityInitializer;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 
 /**
@@ -26,7 +25,6 @@ public class AspirantController {
 
     @CommandMapping("/start")
     public ModelAndView saveAspirant(Update update) {
-        HttpServletResponse response = null;
         Aspirant aspirant = entityInitializer.init(update);
         return new ModelAndView("greeting", Collections.singletonMap("aspirant", aspirant));
     }
