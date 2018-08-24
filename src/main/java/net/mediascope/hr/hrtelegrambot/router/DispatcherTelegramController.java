@@ -5,6 +5,7 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.MessageEntity;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.request.Keyboard;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +18,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.DispatcherServlet;
-import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -29,7 +28,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.pengrad.telegrambot.model.MessageEntity.Type.bot_command;
-import static com.pengrad.telegrambot.model.request.ParseMode.HTML;
 import static org.springframework.http.ResponseEntity.badRequest;
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -38,11 +36,9 @@ import static org.springframework.http.ResponseEntity.ok;
  */
 @RestController
 @Slf4j
-public class DispatcherTelegramController extends DispatcherServlet implements ApplicationContextAware {
+public class DispatcherTelegramController implements ApplicationContextAware {
 
     private ListableBeanFactory beanFactory;
-
-    private ApplicationContext applicationContext;
 
     private Map<String, MethodHolder> botCommandHandlers = new ConcurrentHashMap<>();
 
@@ -51,7 +47,6 @@ public class DispatcherTelegramController extends DispatcherServlet implements A
 
     @PostConstruct
     private void initHandlers() {
-        super.onRefresh(applicationContext);
         Map<String, Object> beans = beanFactory.getBeansWithAnnotation(TelegramController.class);
         for (Object controller : beans.values()) {
             Class<?> controllerClass = controller.getClass();
@@ -79,12 +74,9 @@ public class DispatcherTelegramController extends DispatcherServlet implements A
                 if (messageEntity.type() == bot_command) {
                     String command = message.text().substring(messageEntity.offset(), messageEntity.length());
                     log.info("Receive command: {}", command);
-                    ModelAndView modelAndView = botCommandHandlers.get(command).invoke(update);
-                    TelegramFakeHttpResponse response = new TelegramFakeHttpResponse();
-                    render(modelAndView, request, response);
-                    String text = new String(response.getBody());
-                    log.info("Send message: {}", text);
-                    bot.execute(new SendMessage(update.message().chat().id(), text).parseMode(HTML), new Callback<SendMessage, SendResponse>() {
+                    SendMessage response = botCommandHandlers.get(command).invoke(update);
+                    log.info("Send message: {}", response.toString());
+                    bot.execute(response, new Callback<SendMessage, SendResponse>() {
                         @Override
                         public void onResponse(SendMessage request, SendResponse response) {
                             log.info("Response: {}, error code {}",response.description(), response.errorCode());
@@ -109,7 +101,6 @@ public class DispatcherTelegramController extends DispatcherServlet implements A
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
         this.beanFactory = applicationContext;
     }
 
@@ -122,9 +113,13 @@ public class DispatcherTelegramController extends DispatcherServlet implements A
             this.method = method;
         }
 
-        private ModelAndView invoke(Object... args) {
+        private SendMessage invoke(Object chatId, Object... args) {
             try {
-                return (ModelAndView) method.invoke(object, args);
+                Object response = method.invoke(object, args);
+                if (response instanceof Keyboard) {
+                    return new SendMessage(chatId, "").replyMarkup((Keyboard) response);
+                }
+                return new SendMessage(chatId, response.toString());
             } catch (IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e.getMessage(), e);
             }

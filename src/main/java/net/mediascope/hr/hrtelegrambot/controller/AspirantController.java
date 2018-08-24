@@ -6,9 +6,6 @@ import net.mediascope.hr.hrtelegrambot.model.Aspirant;
 import net.mediascope.hr.hrtelegrambot.router.CommandMapping;
 import net.mediascope.hr.hrtelegrambot.router.TelegramController;
 import net.mediascope.hr.hrtelegrambot.service.EntityInitializer;
-import org.springframework.web.servlet.ModelAndView;
-
-import java.util.Collections;
 
 /**
  * @author Евгений Уткин (evgeny.utkin@mediascope.net)
@@ -24,8 +21,8 @@ public class AspirantController {
     }
 
     @CommandMapping("/start")
-    public ModelAndView saveAspirant(Update update) {
+    public String saveAspirant(Update update) {
         Aspirant aspirant = entityInitializer.init(update);
-        return new ModelAndView("greeting", Collections.singletonMap("aspirant", aspirant));
+        return "Привет " + aspirant.getName();
     }
 }
