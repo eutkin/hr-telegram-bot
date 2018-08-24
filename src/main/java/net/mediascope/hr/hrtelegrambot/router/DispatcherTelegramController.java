@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -34,6 +35,7 @@ public class DispatcherTelegramController implements BeanFactoryAware {
 
     private Map<String, MethodHolder> botCommandHandlers = new ConcurrentHashMap<>();
 
+    @PostConstruct
     private void init() {
         Map<String, Object> beans = beanFactory.getBeansWithAnnotation(TelegramController.class);
         for (Object controller : beans.values()) {
