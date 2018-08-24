@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -76,7 +75,7 @@ public class DispatcherTelegramController implements ApplicationContextAware {
 
      */
     @PostMapping("/api/rest/update")
-    public ResponseEntity update(@RequestBody Update update, HttpServletRequest request) throws Exception {
+    public ResponseEntity update(@RequestBody Update update) {
         log.info(update.toString());
         SendMessage response =  null;
         Message message = update.message();
