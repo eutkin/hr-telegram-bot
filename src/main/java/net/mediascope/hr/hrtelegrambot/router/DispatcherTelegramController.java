@@ -5,7 +5,6 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.MessageEntity;
 import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.model.request.Keyboard;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -115,11 +114,10 @@ public class DispatcherTelegramController implements ApplicationContextAware {
 
         private SendMessage invoke(Object chatId, Object... args) {
             try {
-                Object response = method.invoke(object, args);
-                if (response instanceof Keyboard) {
-                    return new SendMessage(chatId, "").replyMarkup((Keyboard) response);
-                }
-                return new SendMessage(chatId, response.toString());
+                View response = (View) method.invoke(object, args);
+                SendMessage sendMessage = new SendMessage(response.chat().orElse(chatId), response.message());
+                response.keyboard().ifPresent(sendMessage::replyMarkup);
+                return sendMessage;
             } catch (IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e.getMessage(), e);
             }

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.mediascope.hr.hrtelegrambot.model.Aspirant;
 import net.mediascope.hr.hrtelegrambot.router.CommandMapping;
 import net.mediascope.hr.hrtelegrambot.router.TelegramController;
+import net.mediascope.hr.hrtelegrambot.router.View;
 import net.mediascope.hr.hrtelegrambot.service.EntityInitializer;
 
 /**
@@ -21,8 +22,8 @@ public class AspirantController {
     }
 
     @CommandMapping("/start")
-    public String saveAspirant(Update update) {
+    public View saveAspirant(Update update) {
         Aspirant aspirant = entityInitializer.init(update);
-        return "Привет " + aspirant.getName();
+        return new View("Привет " + aspirant.getName());
     }
 }
