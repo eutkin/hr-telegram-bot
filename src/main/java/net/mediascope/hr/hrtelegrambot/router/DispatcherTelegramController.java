@@ -40,9 +40,11 @@ public class DispatcherTelegramController implements ApplicationContextAware {
     private ListableBeanFactory beanFactory;
 
     private Map<String, MethodHolder> botCommandHandlers = new ConcurrentHashMap<>();
+    private Map<String, MethodHolder> botCallbackQueryHandlers = new ConcurrentHashMap<>();
 
     @Autowired
     private TelegramBot bot;
+
 
     @PostConstruct
     private void initHandlers() {
@@ -55,6 +57,13 @@ public class DispatcherTelegramController implements ApplicationContextAware {
                     String[] commands = commandMapping.value();
                     for (String command : commands) {
                         botCommandHandlers.put(command, new MethodHolder(controller, method));
+                    }
+                }
+                CallbackQueryMapping callbackQueryMapping = method.getAnnotation(CallbackQueryMapping.class);
+                if (callbackQueryMapping != null) {
+                    String[] callbackQueries = callbackQueryMapping.value();
+                    for (String callbackQuery : callbackQueries) {
+                        botCallbackQueryHandlers.put(callbackQuery, new MethodHolder(controller, method));
                     }
                 }
             }
@@ -78,7 +87,7 @@ public class DispatcherTelegramController implements ApplicationContextAware {
                     bot.execute(response, new Callback<SendMessage, SendResponse>() {
                         @Override
                         public void onResponse(SendMessage request, SendResponse response) {
-                            log.info("Response: {}, error code {}",response.description(), response.errorCode());
+                            log.info("Response: {}, error code {}", response.description(), response.errorCode());
                         }
 
                         @Override
