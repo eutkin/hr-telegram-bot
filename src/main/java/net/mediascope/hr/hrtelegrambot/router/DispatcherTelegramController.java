@@ -2,6 +2,7 @@ package net.mediascope.hr.hrtelegrambot.router;
 
 import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.MessageEntity;
 import com.pengrad.telegrambot.model.Update;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.pengrad.telegrambot.model.MessageEntity.Type.bot_command;
@@ -76,28 +78,36 @@ public class DispatcherTelegramController implements ApplicationContextAware {
     @PostMapping("/api/rest/update")
     public ResponseEntity update(@RequestBody Update update, HttpServletRequest request) throws Exception {
         log.info(update.toString());
+        SendMessage response =  null;
         Message message = update.message();
         if (message != null) {
             for (MessageEntity messageEntity : message.entities()) {
                 if (messageEntity.type() == bot_command) {
                     String command = message.text().substring(messageEntity.offset(), messageEntity.length());
                     log.info("Receive command: {}", command);
-                    SendMessage response = botCommandHandlers.get(command).invoke(update.message().chat().id(), update);
-                    log.info("Send message: {}", response.toString());
-                    bot.execute(response, new Callback<SendMessage, SendResponse>() {
-                        @Override
-                        public void onResponse(SendMessage request, SendResponse response) {
-                            log.info("Response: {}, error code {}", response.description(), response.errorCode());
-                        }
-
-                        @Override
-                        public void onFailure(SendMessage request, IOException e) {
-                            log.error(e.getMessage(), e);
-                        }
-                    });
+                    response = botCommandHandlers.get(command).invoke(update.message().chat().id(), update);
                 }
             }
         }
+        CallbackQuery callbackQuery = update.callbackQuery();
+        if (callbackQuery != null) {
+            String data = callbackQuery.data();
+            log.info("Receive callback data: {}", data);
+            response = botCallbackQueryHandlers.get(data).invoke(callbackQuery.message().chat().id(), update);
+
+        }
+        log.info("Send message: {}", Objects.toString(response));
+        bot.execute(response, new Callback<SendMessage, SendResponse>() {
+            @Override
+            public void onResponse(SendMessage request, SendResponse response) {
+                log.info("Response: {}, error code {}", response.description(), response.errorCode());
+            }
+
+            @Override
+            public void onFailure(SendMessage request, IOException e) {
+                log.error(e.getMessage(), e);
+            }
+        });
         return ok().build();
     }
 
