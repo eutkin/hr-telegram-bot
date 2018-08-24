@@ -13,11 +13,11 @@ import java.util.Locale;
 /**
  * @author Евгений Уткин (evgeny.utkin@mediascope.net)
  */
-public class TelegramFakeHttpResponse implements HttpServletResponse {
+class TelegramFakeHttpResponse implements HttpServletResponse {
 
     private final ByteArrayServletOutputStream outputStream = new ByteArrayServletOutputStream();
 
-    private final PrintWriter printWriter = new PrintWriter(outputStream);
+    private final PrintWriter printWriter = new PrintWriter(outputStream, true);
 
     @Override
     public ServletOutputStream getOutputStream() {
@@ -29,7 +29,7 @@ public class TelegramFakeHttpResponse implements HttpServletResponse {
         return printWriter;
     }
 
-    public byte[] getBody() {
+    byte[] getBody() {
         return outputStream.getBytes();
     }
 
