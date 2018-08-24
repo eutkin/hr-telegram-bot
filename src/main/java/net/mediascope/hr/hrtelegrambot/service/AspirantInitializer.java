@@ -1,7 +1,7 @@
 package net.mediascope.hr.hrtelegrambot.service;
 
-import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.User;
 import net.mediascope.hr.hrtelegrambot.model.Aspirant;
 import net.mediascope.hr.hrtelegrambot.repository.AspirantRepository;
 
@@ -17,12 +17,12 @@ public class AspirantInitializer {
     }
 
     public void init(Update update) {
-        Chat chat = update.message().chat();
-        Long id = chat.id();
+        User user = update.message().from();
+        Long chatId = update.message().chat().id();
         Aspirant aspirant = new Aspirant()
-                .setChatId(id)
-                .setFirstName(chat.firstName())
-                .setLastName(chat.lastName())
+                .setChatId(chatId)
+                .setFirstName(user.firstName())
+                .setLastName(user.lastName())
                 ;
         aspirantRepository.save(aspirant);
     }
