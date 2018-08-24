@@ -87,7 +87,7 @@ public class DispatcherTelegramController extends DispatcherServlet implements A
                     bot.execute(new SendMessage(update.message().chat().id(), text).parseMode(HTML), new Callback<SendMessage, SendResponse>() {
                         @Override
                         public void onResponse(SendMessage request, SendResponse response) {
-                            log.info(response.toString());
+                            log.info("Response: {}, error code {}",response.description(), response.errorCode());
                         }
 
                         @Override
