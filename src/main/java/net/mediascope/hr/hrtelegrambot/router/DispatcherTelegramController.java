@@ -6,11 +6,10 @@ import com.pengrad.telegrambot.model.MessageEntity;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,9 +35,11 @@ import static org.springframework.http.ResponseEntity.ok;
  */
 @RestController
 @Slf4j
-public class DispatcherTelegramController extends DispatcherServlet implements BeanFactoryAware {
+public class DispatcherTelegramController extends DispatcherServlet implements ApplicationContextAware {
 
     private ListableBeanFactory beanFactory;
+
+    private ApplicationContext applicationContext;
 
     private Map<String, MethodHolder> botCommandHandlers = new ConcurrentHashMap<>();
 
@@ -47,6 +48,7 @@ public class DispatcherTelegramController extends DispatcherServlet implements B
 
     @PostConstruct
     private void initHandlers() {
+        super.onRefresh(applicationContext);
         Map<String, Object> beans = beanFactory.getBeansWithAnnotation(TelegramController.class);
         for (Object controller : beans.values()) {
             Class<?> controllerClass = controller.getClass();
@@ -92,8 +94,9 @@ public class DispatcherTelegramController extends DispatcherServlet implements B
     }
 
     @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        this.beanFactory = (ListableBeanFactory) beanFactory;
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+        this.beanFactory = applicationContext;
     }
 
     private final class MethodHolder {
