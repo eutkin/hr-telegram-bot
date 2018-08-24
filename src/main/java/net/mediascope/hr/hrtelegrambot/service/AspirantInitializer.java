@@ -27,6 +27,7 @@ public class AspirantInitializer implements EntityInitializer<Aspirant> {
                 .setFirstName(user.firstName())
                 .setLastName(user.lastName())
                 ;
-        return aspirantRepository.save(aspirant);
+//        return aspirantRepository.save(aspirant);
+        return aspirant;
     }
 }

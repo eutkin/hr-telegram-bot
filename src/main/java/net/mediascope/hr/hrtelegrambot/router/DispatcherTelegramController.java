@@ -74,7 +74,7 @@ public class DispatcherTelegramController extends DispatcherServlet implements B
                 if (messageEntity.type() == bot_command) {
                     String command = message.text().substring(messageEntity.offset(), messageEntity.length());
                     log.info("Receive command: {}", command);
-                    ModelAndView modelAndView = botCommandHandlers.get(command).invoke();
+                    ModelAndView modelAndView = botCommandHandlers.get(command).invoke(update);
                     TelegramFakeHttpResponse response = new TelegramFakeHttpResponse();
                     render(modelAndView, request, response);
 
