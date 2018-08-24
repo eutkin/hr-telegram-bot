@@ -30,7 +30,7 @@ public class DispatcherTelegramController {
         if (message != null) {
             for (MessageEntity messageEntity : message.entities()) {
                 if (messageEntity.type() == bot_command) {
-                    String command = message.text().substring(messageEntity.offset(), messageEntity.length() + 1);
+                    String command = message.text().substring(messageEntity.offset(), messageEntity.length());
                     log.info("Receive command: {}", command);
                 }
             }
