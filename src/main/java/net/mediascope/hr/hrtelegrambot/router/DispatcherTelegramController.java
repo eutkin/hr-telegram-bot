@@ -74,7 +74,7 @@ public class DispatcherTelegramController implements ApplicationContextAware {
                 if (messageEntity.type() == bot_command) {
                     String command = message.text().substring(messageEntity.offset(), messageEntity.length());
                     log.info("Receive command: {}", command);
-                    SendMessage response = botCommandHandlers.get(command).invoke(update);
+                    SendMessage response = botCommandHandlers.get(command).invoke(update.message().chat().id(), update);
                     log.info("Send message: {}", response.toString());
                     bot.execute(response, new Callback<SendMessage, SendResponse>() {
                         @Override
